@@ -1,11 +1,11 @@
 {
-    "name": "electro_consultas",
-    "short_name": "electro_consultas",
+    "name": "Electro Consultas",
+    "short_name": "Electro",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Consultas de electricidad y electrónica",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -10,6 +10,8 @@ App de consulta de electricidad y electrónica en español, sin conexión, al es
 
 Buscador global con el icono de la lupa.
 
+Versión web (sirve en el iPhone desde Safari): https://alemarcheco.github.io/electro-consultas/
+
 ## Compilar
 
 GitHub Actions compila el APK en cada push a `main` (pestaña Actions → la última ejecución → Artifacts → `electro-consultas-apk`).
