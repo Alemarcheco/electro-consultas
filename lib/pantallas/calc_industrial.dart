@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import '../formato.dart';
@@ -233,6 +235,183 @@ class _CrcModbusState extends State<CrcModbus> {
         ),
         const SizedBox(height: 12),
         res,
+      ],
+    );
+  }
+}
+
+// ───────────────────────── Tabla de calibración ─────────────────────────
+
+class TablaCalibracion extends StatefulWidget {
+  const TablaCalibracion({super.key});
+  @override
+  State<TablaCalibracion> createState() => _TablaCalibracionState();
+}
+
+class _TablaCalibracionState extends EstadoCalculo<TablaCalibracion> {
+  late final _eMin = simple('', ini: '0');
+  late final _eMax = simple('', ini: '10');
+  late final _unidad = TextEditingController(text: 'bar');
+  late final _sMin = simple('mA', ini: '4');
+  late final _sMax = simple('mA', ini: '20');
+  late final _tol = simple('%', ini: '0,25');
+  late final _puntos = reg(Modo(5));
+  late final _raiz = reg(Modo(false));
+  final _medidas = <int, List<Valor>>{};
+
+  List<Valor> get _campos => _medidas.putIfAbsent(
+    _puntos.value,
+    () => [for (var i = 0; i < _puntos.value; i++) simple('mA')],
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _unidad.addListener(() => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    _unidad.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final eMin = _eMin.v,
+        eMax = _eMax.v,
+        sMin = _sMin.v,
+        sMax = _sMax.v,
+        tol = _tol.v;
+    final u = _unidad.text.trim();
+    final ok =
+        eMin != null &&
+        eMax != null &&
+        sMin != null &&
+        sMax != null &&
+        tol != null &&
+        eMax != eMin &&
+        sMax != sMin;
+    final n = _puntos.value;
+    final esquema = Theme.of(context).colorScheme;
+    var todosPasan = true;
+    var completos = true;
+    final filas = <Widget>[];
+    if (ok) {
+      for (var i = 0; i < n; i++) {
+        final pct = i / (n - 1);
+        final entrada = eMin + pct * (eMax - eMin);
+        final frac = _raiz.value ? sqrt(pct) : pct;
+        final ideal = sMin + frac * (sMax - sMin);
+        final medido = _campos[i].v;
+        double? error;
+        if (medido == null) {
+          completos = false;
+        } else {
+          error = (medido - ideal) / (sMax - sMin) * 100;
+          if (error.abs() > tol) todosPasan = false;
+        }
+        final pasa = error != null && error.abs() <= tol;
+        filas.add(
+          Card(
+            margin: const EdgeInsets.only(bottom: 8),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${fmt(pct * 100)} %  ·  aplicar ${fmt(entrada)} $u  ·  ideal ${fmt(ideal, cifras: 5)}',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(child: CampoValor(_campos[i], 'Medido')),
+                      const SizedBox(width: 12),
+                      SizedBox(
+                        width: 96,
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 14),
+                          child: error == null
+                              ? const Text('—', textAlign: TextAlign.center)
+                              : Text(
+                                  '${error >= 0 ? '+' : ''}${fmt(error, cifras: 3)} %\n${pasa ? 'PASA' : 'NO PASA'}',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: pasa
+                                        ? Colors.green.shade700
+                                        : esquema.error,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }
+    }
+    return PantallaCalculo(
+      titulo: 'Tabla de calibración',
+      formulas: const [
+        'Salida ideal = sal. mín. + % × (sal. máx. − sal. mín.)',
+        'Con raíz cuadrada: % de salida = √(% de entrada)',
+        'Error (% del span) = (medido − ideal) / (sal. máx. − sal. mín.) × 100',
+        'Pasa si |error| ≤ tolerancia en todos los puntos.',
+      ],
+      children: [
+        const Titulo('Rango de entrada (lo que aplicas)'),
+        Row(
+          children: [
+            Expanded(child: CampoValor(_eMin, 'Mínimo', conSigno: true)),
+            const SizedBox(width: 8),
+            Expanded(child: CampoValor(_eMax, 'Máximo', conSigno: true)),
+          ],
+        ),
+        TextField(
+          controller: _unidad,
+          decoration: const InputDecoration(
+            labelText: 'Unidad (bar, °C, mbar…)',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 16),
+        const Titulo('Salida (lo que mides)'),
+        Row(
+          children: [
+            Expanded(child: CampoValor(_sMin, 'Mínimo')),
+            const SizedBox(width: 8),
+            Expanded(child: CampoValor(_sMax, 'Máximo')),
+          ],
+        ),
+        CampoValor(_tol, 'Tolerancia (% del span)'),
+        SelectorModo(
+          valor: _puntos.value,
+          opciones: const [(3, '3 puntos'), (5, '5 puntos'), (11, '11 puntos')],
+          alCambiar: (v) => _puntos.value = v,
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Raíz cuadrada (caudal por ΔP)'),
+          value: _raiz.value,
+          onChanged: (v) => _raiz.value = v,
+        ),
+        const Titulo('Puntos'),
+        if (!ok)
+          const Aviso('Completa los rangos y la tolerancia.')
+        else
+          ...filas,
+        if (ok && completos)
+          Resultados(
+            [('Resultado', todosPasan ? 'PASA' : 'NO PASA')],
+            nota: todosPasan ? null : 'Ajusta cero y span (o haz trim HART) y repite la calibración.',
+          ),
       ],
     );
   }

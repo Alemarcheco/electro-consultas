@@ -37,9 +37,10 @@ class _InicioState extends State<Inicio> {
 
   static const _nombres = {
     Seccion.solar: 'Solar',
-    Seccion.calculadoras: 'Calculadoras',
+    Seccion.calculadoras: 'Cálculos',
     Seccion.pinouts: 'Pinouts',
     Seccion.referencias: 'Referencias',
+    Seccion.guias: 'Guías',
   };
 
   @override
@@ -96,6 +97,11 @@ class _InicioState extends State<Inicio> {
             icon: const Icon(Icons.menu_book_outlined),
             selectedIcon: const Icon(Icons.menu_book),
             label: _nombres[Seccion.referencias]!,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.auto_stories_outlined),
+            selectedIcon: const Icon(Icons.auto_stories),
+            label: _nombres[Seccion.guias]!,
           ),
         ],
       ),

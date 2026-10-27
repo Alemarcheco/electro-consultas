@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'datos/arduino.dart';
+import 'guias/fluke754.dart';
 import 'datos/industrial.dart';
 import 'datos/pinouts.dart';
 import 'datos/referencias.dart';
@@ -9,13 +10,14 @@ import 'pantallas/calc_circuitos.dart';
 import 'pantallas/calc_codigos.dart';
 import 'pantallas/calc_industrial.dart';
 import 'pantallas/calc_instalaciones.dart';
+import 'pantallas/pantalla_guia.dart';
 import 'pantallas/pantalla_pinout.dart';
 import 'pantallas/pantalla_solar.dart';
 import 'pantallas/pantalla_tabla.dart';
 import 'solar/ejemplos.dart';
 import 'solar/tablas_solar.dart';
 
-enum Seccion { solar, calculadoras, pinouts, referencias }
+enum Seccion { solar, calculadoras, pinouts, referencias, guias }
 
 /// Una entrada de la lista principal: calculadora, pinout o tabla.
 class Entrada {
@@ -114,6 +116,26 @@ final List<Entrada> catalogo = [
     palabras: ['solar', 'red', 'autoconsumo', 'factura', 'kwp'],
     abrir: _autoconsumo,
   ),
+  Entrada(
+    seccion: Seccion.guias,
+    categoria: 'Calibrador Fluke 754',
+    titulo: 'Guía completa del Fluke 754',
+    subtitulo:
+        '${guiaFluke754.capitulos.length} capítulos: conexiones, menús, HART y recorridos',
+    icono: Icons.menu_book,
+    palabras: const ['fluke', '754', '753', 'calibrador', 'manual', 'guia'],
+    abrir: (_) => PantallaGuia(guiaFluke754),
+  ),
+  for (var i = 0; i < guiaFluke754.capitulos.length; i++)
+    Entrada(
+      seccion: Seccion.guias,
+      categoria: 'Capítulos del Fluke 754',
+      titulo: guiaFluke754.capitulos[i].titulo,
+      subtitulo: guiaFluke754.capitulos[i].resumen,
+      icono: guiaFluke754.capitulos[i].icono,
+      palabras: ['fluke', '754', ...guiaFluke754.capitulos[i].palabras],
+      abrir: (_) => PantallaCapitulo(guiaFluke754, i),
+    ),
   for (final e in ejemplosSolares)
     Entrada(
       seccion: Seccion.solar,
@@ -305,6 +327,22 @@ final List<Entrada> catalogo = [
     Icons.speed,
     const Escalado420(),
     ['4-20', '420', 'analogico', 'escalar', 'plc', 'transmisor', 'industrial'],
+  ),
+  _calc(
+    'Industrial',
+    'Tabla de calibración',
+    'Puntos, error y pasa / no pasa',
+    Icons.fact_check,
+    const TablaCalibracion(),
+    [
+      'calibracion',
+      'error',
+      'tolerancia',
+      'transmisor',
+      'as found',
+      'fluke',
+      'industrial',
+    ],
   ),
   _calc(
     'Industrial',
