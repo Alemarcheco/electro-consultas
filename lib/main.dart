@@ -36,6 +36,7 @@ class _InicioState extends State<Inicio> {
   var _seccion = Seccion.calculadoras;
 
   static const _nombres = {
+    Seccion.solar: 'Solar',
     Seccion.calculadoras: 'Calculadoras',
     Seccion.pinouts: 'Pinouts',
     Seccion.referencias: 'Referencias',
@@ -76,6 +77,11 @@ class _InicioState extends State<Inicio> {
         onDestinationSelected: (i) =>
             setState(() => _seccion = Seccion.values[i]),
         destinations: [
+          NavigationDestination(
+            icon: const Icon(Icons.solar_power_outlined),
+            selectedIcon: const Icon(Icons.solar_power),
+            label: _nombres[Seccion.solar]!,
+          ),
           NavigationDestination(
             icon: const Icon(Icons.calculate_outlined),
             selectedIcon: const Icon(Icons.calculate),

@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 
 import 'datos/arduino.dart';
+import 'datos/industrial.dart';
 import 'datos/pinouts.dart';
 import 'datos/referencias.dart';
 import 'pantallas/calc_basicos.dart';
 import 'pantallas/calc_circuitos.dart';
 import 'pantallas/calc_codigos.dart';
+import 'pantallas/calc_industrial.dart';
 import 'pantallas/calc_instalaciones.dart';
 import 'pantallas/pantalla_pinout.dart';
+import 'pantallas/pantalla_solar.dart';
 import 'pantallas/pantalla_tabla.dart';
+import 'solar/ejemplos.dart';
+import 'solar/tablas_solar.dart';
 
-enum Seccion { calculadoras, pinouts, referencias }
+enum Seccion { solar, calculadoras, pinouts, referencias }
 
 /// Una entrada de la lista principal: calculadora, pinout o tabla.
 class Entrada {
@@ -32,6 +37,9 @@ class Entrada {
     required this.abrir,
   });
 }
+
+Widget _configurador(BuildContext _) => const ConfiguradorSolar();
+Widget _autoconsumo(BuildContext _) => const AutoconsumoRed();
 
 Entrada _calc(
   String cat,
@@ -58,6 +66,7 @@ IconData _iconoPinout(String categoria) => switch (categoria) {
   'Redes' => Icons.lan,
   'Automoción' => Icons.directions_car,
   'Placas' || 'Arduino' => Icons.developer_board,
+  'Industrial' => Icons.precision_manufacturing,
   'Circuitos integrados' => Icons.memory,
   'Reguladores' => Icons.bolt,
   'Transistores' => Icons.call_split,
@@ -73,10 +82,70 @@ IconData _iconoTabla(String categoria) => switch (categoria) {
   'Componentes' => Icons.memory,
   'Comunicaciones' => Icons.swap_horiz,
   'Arduino' => Icons.developer_board,
+  'Industrial' => Icons.precision_manufacturing,
   _ => Icons.table_chart_outlined,
 };
 
 final List<Entrada> catalogo = [
+  const Entrada(
+    seccion: Seccion.solar,
+    categoria: 'Configurar',
+    titulo: 'Sistema solar aislado',
+    subtitulo: 'Paneles, baterías, regulador e inversor para tus aparatos',
+    icono: Icons.solar_power,
+    palabras: [
+      'solar',
+      'off-grid',
+      'aislado',
+      'apagones',
+      'paneles',
+      'baterias',
+      'inversor',
+      'dimensionar',
+    ],
+    abrir: _configurador,
+  ),
+  const Entrada(
+    seccion: Seccion.solar,
+    categoria: 'Configurar',
+    titulo: 'Autoconsumo con red',
+    subtitulo: 'Paneles e inversor para bajar la factura',
+    icono: Icons.home_work,
+    palabras: ['solar', 'red', 'autoconsumo', 'factura', 'kwp'],
+    abrir: _autoconsumo,
+  ),
+  for (final e in ejemplosSolares)
+    Entrada(
+      seccion: Seccion.solar,
+      categoria: 'Ejemplos',
+      titulo: e.titulo,
+      subtitulo: e.descripcion,
+      icono: Icons.wb_sunny_outlined,
+      palabras: [
+        'solar',
+        'ejemplo',
+        e.lugar,
+        e.panel,
+        e.bateria,
+        e.inversor ?? '',
+        e.regulador ?? '',
+      ],
+      abrir: (_) => ConfiguradorSolar(ejemplo: e),
+    ),
+  for (final t in tablasSolares)
+    Entrada(
+      seccion: Seccion.solar,
+      categoria: t.categoria,
+      titulo: t.titulo,
+      subtitulo: t.descripcion,
+      icono: Icons.table_chart_outlined,
+      palabras: [
+        ...t.palabras,
+        ...t.columnas,
+        for (final f in t.filas) f.first,
+      ],
+      abrir: (_) => PantallaTabla(t),
+    ),
   _calc(
     'Códigos',
     'Código de colores',
@@ -229,7 +298,23 @@ final List<Entrada> catalogo = [
     const DuracionBateria(),
     ['bateria', 'pila', 'mah', 'autonomia'],
   ),
-  for (final p in [...pinouts, ...pinoutsArduino])
+  _calc(
+    'Industrial',
+    'Escalado 4–20 mA',
+    '4–20 mA, 0–10 V… a valor de proceso',
+    Icons.speed,
+    const Escalado420(),
+    ['4-20', '420', 'analogico', 'escalar', 'plc', 'transmisor', 'industrial'],
+  ),
+  _calc(
+    'Industrial',
+    'CRC Modbus',
+    'CRC-16 y LRC de una trama',
+    Icons.tag,
+    const CrcModbus(),
+    ['modbus', 'crc', 'trama', 'rtu', 'hex', 'industrial'],
+  ),
+  for (final p in [...pinouts, ...pinoutsArduino, ...pinoutsIndustrial])
     Entrada(
       seccion: Seccion.pinouts,
       categoria: p.categoria,
@@ -245,7 +330,7 @@ final List<Entrada> catalogo = [
       ],
       abrir: (_) => PantallaPinout(p),
     ),
-  for (final t in [...referencias, ...tablasArduino])
+  for (final t in [...referencias, ...tablasArduino, ...tablasIndustrial])
     Entrada(
       seccion: Seccion.referencias,
       categoria: t.categoria,

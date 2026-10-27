@@ -206,20 +206,27 @@ class Resultados extends StatelessWidget {
                   textBaseline: TextBaseline.alphabetic,
                   children: [
                     Expanded(
+                      flex: 2,
                       child: Text(
                         etiqueta,
                         style: texto.bodyLarge?.copyWith(color: color),
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Flexible(
+                    Expanded(
+                      flex: 3,
                       child: SelectableText(
                         valor,
                         textAlign: TextAlign.right,
-                        style: texto.titleLarge?.copyWith(
-                          color: color,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        // Los textos largos (modelos de equipos) van más pequeños.
+                        style:
+                            (valor.length > 16
+                                    ? texto.titleMedium
+                                    : texto.titleLarge)
+                                ?.copyWith(
+                                  color: color,
+                                  fontWeight: FontWeight.bold,
+                                ),
                       ),
                     ),
                   ],
@@ -355,4 +362,42 @@ class SelectorModo<T> extends StatelessWidget {
 /// redibuje al cambiarlo.
 class Modo<T> extends ValueNotifier<T> {
   Modo(super.value);
+}
+
+/// Desplegable con etiqueta y borde, como los campos de texto.
+class Desplegable<T> extends StatelessWidget {
+  final String etiqueta;
+  final T valor;
+  final List<(T, String)> opciones;
+  final ValueChanged<T> alCambiar;
+
+  const Desplegable({
+    super.key,
+    required this.etiqueta,
+    required this.valor,
+    required this.opciones,
+    required this.alCambiar,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButtonFormField<T>(
+      // La clave hace que se actualice si el valor cambia desde fuera.
+      key: ValueKey(valor),
+      initialValue: valor,
+      isExpanded: true,
+      decoration: InputDecoration(
+        labelText: etiqueta,
+        border: const OutlineInputBorder(),
+      ),
+      items: [
+        for (final (v, t) in opciones)
+          DropdownMenuItem(
+            value: v,
+            child: Text(t, overflow: TextOverflow.ellipsis),
+          ),
+      ],
+      onChanged: (v) => alCambiar(v as T),
+    );
+  }
 }

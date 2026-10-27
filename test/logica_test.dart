@@ -2,6 +2,7 @@ import 'package:electro_consultas/calc/codigos.dart';
 import 'package:electro_consultas/catalogo.dart';
 import 'package:electro_consultas/formato.dart';
 import 'package:electro_consultas/pantallas/calc_basicos.dart';
+import 'package:electro_consultas/pantallas/calc_industrial.dart';
 import 'package:electro_consultas/pantallas/calc_instalaciones.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -100,5 +101,20 @@ void main() {
       buscar('ethernet').map((e) => e.titulo),
       contains('RJ45 Ethernet T568B'),
     );
+  });
+
+  test('CRC Modbus', () {
+    final b = leerHex('01 03 00 00 00 0A')!;
+    expect(crcModbus(b), 0xCDC5);
+    expect(crcModbus([...b, 0xC5, 0xCD]), 0);
+    expect(leerHex('0x01,0x03'), [1, 3]);
+    expect(leerHex('123'), isNull);
+    expect(lrcModbus([0x01, 0x03, 0x00, 0x00, 0x00, 0x0A]), 0xF2);
+  });
+
+  test('escalado 4-20 mA', () {
+    expect(escalar(12, 4, 20, 0, 10), 5);
+    expect(escalar(5, 0, 10, 4, 20), 12);
+    expect(escalar(4, 4, 20, -50, 150), -50);
   });
 }

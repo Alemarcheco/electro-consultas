@@ -140,7 +140,7 @@ class _CaidaTensionState extends EstadoCalculo<CaidaTension> {
         Row(
           children: [
             Expanded(
-              child: _Desplegable<double>(
+              child: Desplegable<double>(
                 etiqueta: 'Sección',
                 valor: _seccion.value,
                 opciones: [
@@ -151,7 +151,7 @@ class _CaidaTensionState extends EstadoCalculo<CaidaTension> {
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: _Desplegable<String>(
+              child: Desplegable<String>(
                 etiqueta: 'Material',
                 valor: _material.value,
                 opciones: const [('Cobre', 'Cobre'), ('Aluminio', 'Aluminio')],
@@ -161,7 +161,7 @@ class _CaidaTensionState extends EstadoCalculo<CaidaTension> {
           ],
         ),
         const SizedBox(height: 12),
-        _Desplegable<int>(
+        Desplegable<int>(
           etiqueta: 'Temperatura del conductor',
           valor: _temp.value,
           opciones: const [
@@ -175,37 +175,6 @@ class _CaidaTensionState extends EstadoCalculo<CaidaTension> {
         CampoValor(_max, 'Caída máxima admitida'),
         res,
       ],
-    );
-  }
-}
-
-class _Desplegable<T> extends StatelessWidget {
-  final String etiqueta;
-  final T valor;
-  final List<(T, String)> opciones;
-  final ValueChanged<T> alCambiar;
-
-  const _Desplegable({
-    required this.etiqueta,
-    required this.valor,
-    required this.opciones,
-    required this.alCambiar,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return DropdownButtonFormField<T>(
-      initialValue: valor,
-      isExpanded: true,
-      decoration: InputDecoration(
-        labelText: etiqueta,
-        border: const OutlineInputBorder(),
-      ),
-      items: [
-        for (final (v, t) in opciones)
-          DropdownMenuItem(value: v, child: Text(t)),
-      ],
-      onChanged: (v) => alCambiar(v as T),
     );
   }
 }
